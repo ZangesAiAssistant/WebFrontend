@@ -11,7 +11,7 @@ export default function Home() {
                 <CardContent>
                     <main>
                         <h1 className={'text-2xl font-bold mb-4'}>Welcome to My App</h1>
-                        <p className={'text-gray-700 mb-6'}>
+                        <p className={'text-muted-foreground mb-6'}>
                             This is a simple application built with Next.js and Tailwind CSS.
                         </p>
                         <ThemeToggle />
