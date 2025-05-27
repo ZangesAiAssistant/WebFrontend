@@ -2,6 +2,7 @@ import {
     Card,
     CardContent
 } from "@/components/ui/card";
+import {ThemeToggle} from "@/components/theme-toggle";
 
 export default function Home() {
     return (
@@ -13,6 +14,7 @@ export default function Home() {
                         <p className={'text-gray-700 mb-6'}>
                             This is a simple application built with Next.js and Tailwind CSS.
                         </p>
+                        <ThemeToggle />
                     </main>
                 </CardContent>
             </Card>
