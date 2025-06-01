@@ -1,5 +1,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {ChatMessage} from "@/components/chat-message";
+import {Textarea} from "@/components/ui/textarea";
+import {Button} from "@/components/ui/button";
 
 export function Chat() {
   // mock message dict
@@ -21,6 +23,14 @@ export function Chat() {
             <ChatMessage key={message.id} message={message.text} sender={message.sender}/>
           ))}
       </ScrollArea>
+      <div className="grid grid-cols-[1fr_auto] items-end gap-2 mt-4 w-full">
+        <Textarea
+          className={'w-full'} placeholder="Type your message..." rows={1} />
+        <Button className={'h-full'} type="submit">
+          Send
+        </Button>
+      </div>
+    
     </div>
   );
 }
