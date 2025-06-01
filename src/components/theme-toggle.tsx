@@ -1,10 +1,10 @@
 "use client";
 
-import { useTheme } from "@/components/provider/theme-provider";
-import { Button } from "@/components/ui/button";
+import {useTheme} from "@/components/provider/theme-provider";
+import {Button} from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const {theme, setTheme, resolvedTheme} = useTheme();
   
   return (
     <div>
