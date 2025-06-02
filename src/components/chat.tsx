@@ -24,13 +24,22 @@ export function Chat() {
   
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
-      const scrollViewport = scrollAreaRef.current.querySelector('div[style*="overflow: scroll"]');
-      if (scrollViewport) {
-        scrollViewport.scrollTop = scrollViewport.scrollHeight;
+      // Try to find the Radix UI viewport specifically, common in ShadCN UI components
+      let scrollableViewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      
+      if (scrollableViewport) {
+        scrollableViewport.scrollTop = scrollableViewport.scrollHeight;
       } else {
-        const directChild = scrollAreaRef.current.firstElementChild;
-        if (directChild) {
-          directChild.scrollTop = directChild.scrollHeight;
+        // Fallback to your original more generic selectors if the Radix attribute isn't found
+        scrollableViewport = scrollAreaRef.current.querySelector('div[style*="overflow: scroll"]');
+        if (scrollableViewport) {
+          scrollableViewport.scrollTop = scrollableViewport.scrollHeight;
+        } else {
+          // Fallback to the direct first child if it's scrollable
+          const directChild = scrollAreaRef.current.firstElementChild;
+          if (directChild && typeof (directChild as HTMLElement).scrollTop === 'number') {
+            directChild.scrollTop = directChild.scrollHeight;
+          }
         }
       }
     }
@@ -101,10 +110,7 @@ export function Chat() {
       
       const backendResponseMessages: Message[] = await response.json();
       
-      setMessages((prevMessages) => {
-        const filteredMessages = prevMessages.filter(msg => msg.id !== optimisticMessage.id);
-        return [...filteredMessages, ...backendResponseMessages];
-      });
+      setMessages(backendResponseMessages);
       
     } catch (e: any) {
       setError(e.message || "Failed to send message.");
