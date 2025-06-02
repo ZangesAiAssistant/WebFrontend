@@ -9,15 +9,14 @@ export function ChatMessage({ message, sender }: ChatMessageProps) {
   const isUser = sender.toLowerCase() === 'user';
   
   return (
-    <div className={`flex w-full mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex w-full m-2 ${isUser ? 'justify-start' : 'justify-end'}`}>
       <Card
         className={`
-          max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg  /* Responsive max width for the card */
-          rounded-xl shadow-md                          /* Styling for the card */
-          ${isUser ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'} /* Conditional colors */
+          max-w-[95%] rounded-xl shadow-md mr-4
+          ${isUser ? 'bg-blue-950 text-white' : 'bg-gray-300 text-black'}
         `}
       >
-        <div className="p-3">
+        <div className="p-3 pt-0 pb-0">
           <div className="text-sm break-words">{message}</div>
         </div>
       </Card>
