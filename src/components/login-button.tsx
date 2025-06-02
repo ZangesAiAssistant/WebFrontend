@@ -1,20 +1,27 @@
 "use client";
 
-import {Button} from "@/components/ui/button";
-import {SetStateAction, useEffect, useState} from "react";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState, useCallback } from "react";
 
-export default function LoginButton() {
-  const [token, setToken] = useState(null);
+interface LoginButtonProps {
+  onLoginSuccess: (token: string) => void;
+}
+
+export default function LoginButton({ onLoginSuccess }: LoginButtonProps) {
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [_, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  
+  const handleLoginSuccessCallback = useCallback((authToken: string) => {
+    onLoginSuccess(authToken);
+  }, [onLoginSuccess]);
   
   useEffect(() => {
-    const handleMessage = (event: { origin: string; data: { type: string; token: SetStateAction<null>; error: any; }; }) => {
-      if (event.origin !== 'http://localhost:8000') {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== 'http://localhost:8000' && event.origin !== window.origin) {
         return;
       }
-      
-      if (event.data?.type === 'AUTH_SUCCESS' && event.data?.token) {
+      if (event.data?.type === 'AUTH_SUCCESS' && typeof event.data?.token === 'string') {
         setToken(event.data.token);
         setLoading(false);
       } else if (event.data?.type === 'AUTH_ERROR') {
@@ -22,23 +29,26 @@ export default function LoginButton() {
         setLoading(false);
       }
     };
-    
     window.addEventListener('message', handleMessage);
-    
     return () => {
       window.removeEventListener('message', handleMessage);
     };
   }, []);
   
+  useEffect(() => {
+    if (token) {
+      handleLoginSuccessCallback(token);
+      setToken(null);
+    }
+  }, [token, handleLoginSuccessCallback]);
+  
   const handleGoogleLogin = () => {
     setLoading(true);
-    setError("");
-    
+    setError(null);
     const width = 500;
     const height = 600;
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2.5;
-    
     const popup = window.open(
       'http://localhost:8000/auth/login',
       'Google Login',
@@ -46,35 +56,33 @@ export default function LoginButton() {
     );
     
     if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-      setError('Popup blocked by the browser. Please allow popups and try again.');
+      setError('Popup blocked. Please allow popups and try again.');
       setLoading(false);
       return;
     }
     
-    setTimeout(() => {
-      if (!token && !popup.closed) {
+    const timer = setTimeout(() => {
+      if (!token && popup && !popup.closed) {
         popup.close();
         setLoading(false);
         setError('Authentication timed out. Please try again.');
       }
     }, 60000);
+    
+    const interval = setInterval(() => {
+      if (popup.closed || token) {
+        clearInterval(interval);
+        clearTimeout(timer);
+      }
+    }, 500);
   };
-  
-  const handleLoginSuccess = (authToken: string) => {
-    console.log('Authentication successful:', authToken);
-    localStorage.setItem('authToken', authToken);
-    // You might want to redirect or update UI here
-  };
-  
-  useEffect(() => {
-    if (token) {
-      handleLoginSuccess(token);
-    }
-  }, [token]);
   
   return (
-    <Button onClick={handleGoogleLogin} disabled={loading}>
-      {loading ? 'Logging in...' : 'Login with Google'}
-    </Button>
+    <>
+      <Button onClick={handleGoogleLogin} disabled={loading}>
+        {loading ? 'Logging in...' : 'Login with Google'}
+      </Button>
+      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+    </>
   );
 }
