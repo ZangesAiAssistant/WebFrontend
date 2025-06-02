@@ -6,19 +6,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState, useRef, FormEvent } from "react";
 
+// --- BEGIN EDITED BLOCK ---
 interface Message {
-  id: string | number; // Allow string or number for IDs from backend
-  text: string;
-  sender: string; // e.g., "User", "Bot"
-  timestamp?: string; // Optional timestamp
+  id: string | number;
+  message: string;
+  sender: string;
+  send_time?: string;
 }
+// --- END EDITED BLOCK ---
 
 export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState("");
+  const [newMessageText, setNewMessageText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null); // For auto-scrolling
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -48,7 +50,6 @@ export function Chat() {
             },
           }
         );
-        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -71,17 +72,17 @@ export function Chat() {
   
   const handleSendMessage = async (e: FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessageText.trim()) return;
     
     const optimisticMessage: Message = {
       id: `temp-${Date.now()}`,
-      text: newMessage,
+      message: newMessageText,
       sender: "User",
-      timestamp: new Date().toISOString(),
+      send_time: new Date().toISOString(),
     };
     
     setMessages((prevMessages) => [...prevMessages, optimisticMessage]);
-    setNewMessage("");
+    setNewMessageText("");
     setIsLoading(true);
     
     try {
@@ -91,23 +92,18 @@ export function Chat() {
           "Content-Type": "application/json",
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         },
-        body: JSON.stringify({ text: optimisticMessage.text }),
+        body: JSON.stringify({ message: optimisticMessage.message }),
       });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const botResponse: Message | Message[] = await response.json();
+      const backendResponseMessages: Message[] = await response.json();
       
       setMessages((prevMessages) => {
         const filteredMessages = prevMessages.filter(msg => msg.id !== optimisticMessage.id);
-        if (Array.isArray(botResponse)) {
-          return [...filteredMessages, ...botResponse];
-        } else {
-          const finalUserMessage = { ...optimisticMessage, id: botResponse.id || optimisticMessage.id };
-          return [...filteredMessages, finalUserMessage, botResponse];
-        }
+        return [...filteredMessages, ...backendResponseMessages];
       });
       
     } catch (e: any) {
@@ -125,8 +121,8 @@ export function Chat() {
         <div className="p-4">
           {isLoading && messages.length === 0 && <p>Loading messages...</p>}
           {error && <p className="text-red-500">Error: {error}</p>}
-          {messages.map((message) => (
-            <ChatMessage key={message.id} message={message.text} sender={message.sender} />
+          {messages.map((msg) => (
+            <ChatMessage key={msg.id} message={msg.message} sender={msg.sender} />
           ))}
         </div>
       </ScrollArea>
@@ -135,8 +131,8 @@ export function Chat() {
           className={'w-full resize-none'}
           placeholder="Type your message..."
           rows={1}
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
+          value={newMessageText}
+          onChange={(e) => setNewMessageText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -144,7 +140,7 @@ export function Chat() {
             }
           }}
         />
-        <Button className={'h-full'} type="submit" disabled={isLoading || !newMessage.trim()}>
+        <Button className={'h-full'} type="submit" disabled={isLoading || !newMessageText.trim()}>
           {isLoading ? "Sending..." : "Send"}
         </Button>
       </form>
