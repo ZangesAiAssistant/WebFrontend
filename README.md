@@ -1,6 +1,9 @@
 # Zanges AI Assistant Frontend
 This is the frontend for the Zanges AI Assistant.
 
+![Screenshot Dark-Mode](readme-assets/screenshot-dark.png)
+![Screenshot Light-Mode](readme-assets/screenshot-light.png)
+
 ## Tech Stack
 - Next.js
 - TypeScript
